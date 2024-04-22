@@ -5,8 +5,12 @@
 //  Created by HUY TON on 20/04/2024.
 //
 
+import Foundation
 import SwiftUI
 import TipKit
+
+
+
 
 struct ContentView: View {
     @State var showExchangeInfo = false
@@ -20,6 +24,37 @@ struct ContentView: View {
     
     @FocusState var leftTyping
     @FocusState var rightTyping
+    
+    
+    func saveUserPreferences() {
+        UserDefaults.standard.set(leftCurrency.name, forKey: "left")
+        UserDefaults.standard.set(rightCurrency.name, forKey: "right")
+    }
+    
+    func retrieveUserPreferences() {
+        let storedLeftCurrency = UserDefaults.standard.string(forKey: "left")
+        let storedRightCurrency = UserDefaults.standard.string(forKey: "right")
+
+        if storedLeftCurrency != nil {
+            Currency.allCases.forEach{ entry in
+                if entry.name == storedLeftCurrency {
+                    leftCurrency = entry
+                }
+            }
+            if storedRightCurrency != nil {
+                Currency.allCases.forEach{ entry in
+                    if entry.name == storedRightCurrency {
+                        rightCurrency = entry
+                    }
+                }
+            }
+        
+           
+            
+        }
+    }
+    
+
     
     var body: some View {
         if #available(iOS 17.0, *) {
@@ -134,8 +169,11 @@ struct ContentView: View {
                 
                 //            .border(.blue)
             }
+            
             .task {
                 try? Tips.configure()
+                
+               
             }
             .onChange(of: leftAmount) {
                 
@@ -164,11 +202,32 @@ struct ContentView: View {
                 SelectCurrency(topCurrency: $leftCurrency,
                                bottomCurrency: $rightCurrency)
             })
+            .onAppear {
+                retrieveUserPreferences()
+            }
+            .onChange(of: leftCurrency) {
+                saveUserPreferences()
+            }
+            .onChange(of: rightCurrency) {
+                saveUserPreferences()
+            }
+            .onTapGesture{
+                if leftTyping {
+                    leftTyping.toggle()
+                }
+                if rightTyping {
+                    rightTyping.toggle()
+                }
+            }
+            
         } else {
             // Fallback on earlier versions
         }
+            
         
     }
+    
+
 }
 
 struct ContentView_Previews: PreviewProvider {
